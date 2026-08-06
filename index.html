@@ -1,524 +1,832 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ansh — Software Engineer</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnshOS v1.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#000;--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bg4:#242424;
+  --green:#00ff88;--green2:#00cc6a;--green3:rgba(0,255,136,0.08);
+  --border:rgba(0,255,136,0.15);--border2:rgba(0,255,136,0.3);
+  --text:#e8e8e8;--muted:#666;--muted2:#888;
+  --amber:#fbbf24;--red:#ff4444;--blue:#60a5fa;
+  --font:'Courier New',Courier,monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--black);color:var(--text);font-family:var(--font);font-size:14px;}
 
-    :root {
-      --bg: #000000;
-      --bg2: #0a0a0a;
-      --bg3: #121212;
-      --border: rgba(0,255,0,0.1);
-      --border2: rgba(0,255,0,0.15);
-      --text: #e0e0e0;
-      --muted: #808080;
-      --accent: #00ff00;
-      --accent2: #00cc00;
-      --amber: #00ff00;
-    }
+/* ── SCANLINES ── */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999;}
 
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+/* ── BOOT SCREEN ── */
+#boot{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;}
+.boot-box{border:1px solid var(--green);padding:2.5rem 3rem;min-width:420px;max-width:90vw;position:relative;}
+.boot-box::before{content:'';position:absolute;inset:-1px;border:1px solid var(--green);opacity:0.3;animation:glitch-border 4s infinite;}
+@keyframes glitch-border{0%,95%,100%{transform:translate(0);}96%{transform:translate(-2px,1px);}97%{transform:translate(2px,-1px);}98%{transform:translate(-1px,0);}}
+.boot-title{color:var(--green);font-size:22px;font-weight:bold;letter-spacing:0.1em;margin-bottom:0.25rem;}
+.boot-sub{color:var(--muted2);font-size:11px;letter-spacing:0.2em;margin-bottom:2rem;}
+.boot-line{color:var(--muted2);font-size:12px;margin-bottom:0.4rem;opacity:0;transition:opacity 0.3s;}
+.boot-line.show{opacity:1;}
+.boot-line .ok{color:var(--green);}
+.boot-line .fail{color:var(--red);}
+.progress-wrap{margin:1.2rem 0;height:14px;border:1px solid var(--border2);position:relative;overflow:hidden;}
+.progress-bar{height:100%;background:var(--green);width:0%;transition:width 0.05s;box-shadow:0 0 10px var(--green);}
+.progress-label{color:var(--muted2);font-size:11px;margin-top:0.4rem;}
+.boot-enter{margin-top:1.5rem;color:var(--green);font-size:13px;cursor:pointer;border:1px solid var(--border2);padding:8px 20px;display:inline-block;letter-spacing:0.1em;opacity:0;transition:all 0.2s;}
+.boot-enter:hover{background:var(--green3);box-shadow:0 0 20px rgba(0,255,136,0.2);}
+.boot-enter.visible{opacity:1;}
+.cursor{display:inline-block;width:8px;height:14px;background:var(--green);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:middle;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
 
-    /* NAV */
-    nav {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(10,10,10,0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 0.5px solid var(--border);
-      padding: 0 2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 56px;
-    }
-    .nav-name { font-size: 15px; font-weight: 500; color: var(--accent); letter-spacing: 0.02em; }
-    .nav-links { display: flex; gap: 1.5rem; }
-    .nav-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
+/* ── DESKTOP ── */
+#desktop{display:none;height:100vh;flex-direction:column;background:var(--bg);}
+.taskbar{height:36px;background:rgba(0,0,0,0.8);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1rem;flex-shrink:0;}
+.taskbar-left{display:flex;align-items:center;gap:12px;}
+.taskbar-logo{color:var(--green);font-weight:bold;font-size:13px;letter-spacing:0.05em;}
+.taskbar-sep{color:var(--border2);font-size:16px;}
+.taskbar-btn{font-size:11px;color:var(--muted2);cursor:pointer;padding:3px 8px;border:1px solid transparent;border-radius:2px;font-family:var(--font);transition:all 0.15s;}
+.taskbar-btn:hover,.taskbar-btn.active{color:var(--green);border-color:var(--border);}
+.taskbar-right{display:flex;align-items:center;gap:1rem;font-size:11px;color:var(--muted2);}
+.taskbar-status{color:var(--green);font-size:11px;}
 
-    /* LAYOUT */
-    section { padding: 4rem 2rem; max-width: 780px; margin: 0 auto; }
-    .divider { border: none; border-top: 0.5px solid var(--border); max-width: 780px; margin: 0 auto; }
-    .section-label { font-size: 11px; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; margin-bottom: 0.5rem; }
+.desktop-body{flex:1;overflow:hidden;position:relative;}
 
-    /* HERO */
-    .hero { padding-top: 5rem; padding-bottom: 4rem; }
-    .hero h1 { font-size: 48px; font-weight: 500; line-height: 1.1; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-    .hero h1 span { color: var(--accent); }
-    .hero .tagline { font-size: 17px; color: var(--muted); max-width: 520px; line-height: 1.6; margin-bottom: 2rem; }
-    .hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2.5rem; }
-    .chip { font-size: 12px; padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border2); color: var(--muted); }
-    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn-primary { font-size: 13px; padding: 9px 20px; border-radius: 8px; background: var(--accent2); color: #fff; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-ghost { font-size: 13px; padding: 9px 20px; border-radius: 8px; background: transparent; color: var(--muted); border: 0.5px solid var(--border2); cursor: pointer; text-decoration: none; display: inline-block; transition: color 0.2s, border-color 0.2s; }
-    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+/* ── APP LAUNCHER ── */
+#launcher{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}
+.launcher-header{text-align:center;margin-bottom:2.5rem;}
+.launcher-header h1{color:var(--green);font-size:28px;letter-spacing:0.15em;font-weight:bold;text-shadow:0 0 20px rgba(0,255,136,0.5);}
+.launcher-header p{color:var(--muted2);font-size:11px;letter-spacing:0.2em;margin-top:4px;}
+.app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:560px;width:100%;}
+.app-icon{background:var(--bg2);border:1px solid var(--border);padding:20px 16px;cursor:pointer;text-align:center;transition:all 0.2s;position:relative;overflow:hidden;}
+.app-icon::before{content:'';position:absolute;inset:0;background:var(--green3);opacity:0;transition:opacity 0.2s;}
+.app-icon:hover::before{opacity:1;}
+.app-icon:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,255,136,0.1);}
+.app-icon .icon{font-size:28px;margin-bottom:8px;display:block;}
+.app-icon .name{font-size:12px;color:var(--text);letter-spacing:0.05em;}
+.app-icon .ext{font-size:10px;color:var(--muted);margin-top:2px;}
+.status-bar{margin-top:2.5rem;display:flex;gap:2rem;font-size:11px;color:var(--muted);}
+.status-item span{color:var(--green);}
 
-    /* SKILLS */
-    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem; }
-    .skill-group h3 { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; margin-bottom: 10px; }
-    .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-    .stag { font-size: 12px; color: var(--muted); padding: 3px 8px; border: 0.5px solid var(--border); border-radius: 4px; }
+/* ── WINDOWS ── */
+.win{position:absolute;background:var(--bg);border:1px solid var(--border);display:none;flex-direction:column;min-width:360px;box-shadow:0 8px 40px rgba(0,0,0,0.8);}
+.win.open{display:flex;}
+.win-titlebar{height:32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;cursor:move;flex-shrink:0;user-select:none;}
+.win-dot{width:12px;height:12px;border-radius:50%;cursor:pointer;flex-shrink:0;}
+.win-dot.close{background:#ff5f57;}
+.win-dot.min{background:#febc2e;}
+.win-dot.max{background:#28c840;}
+.win-title{flex:1;text-align:center;font-size:11px;color:var(--muted2);letter-spacing:0.1em;}
+.win-body{flex:1;overflow:auto;padding:1.25rem;}
 
-    /* PROJECTS */
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-    .section-head h2 { font-size: 22px; font-weight: 500; }
-    .proj-count { font-size: 12px; color: var(--muted); background: var(--bg3); border: 0.5px solid var(--border); padding: 2px 10px; border-radius: 20px; }
-    .projects-list { display: flex; flex-direction: column; gap: 12px; }
-    .project-card {
-      background: var(--bg2); border: 0.5px solid var(--border);
-      border-radius: 12px; padding: 1.25rem 1.5rem;
-      position: relative; transition: border-color 0.2s;
-    }
-    .project-card:hover { border-color: var(--border2); }
-    .project-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
-    .project-title { font-size: 16px; font-weight: 500; }
-    .project-star { font-size: 11px; color: var(--amber); border: 0.5px solid rgba(0,255,0,0.3); padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-    .project-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
-    .project-stack { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-    .stack-tag { font-size: 11px; color: var(--accent); background: rgba(167,139,250,0.08); border: 0.5px solid rgba(167,139,250,0.2); padding: 2px 8px; border-radius: 4px; }
-    .proj-link { font-size: 11px; color: var(--muted); text-decoration: none; padding: 2px 8px; border: 0.5px solid var(--border); border-radius: 4px; transition: color 0.2s; }
-    .proj-link:hover { color: var(--text); }
+/* scrollbar */
+.win-body::-webkit-scrollbar{width:6px;}
+.win-body::-webkit-scrollbar-track{background:var(--bg2);}
+.win-body::-webkit-scrollbar-thumb{background:var(--border2);}
 
-    /* ADD PROJECT FORM */
-    .add-section { margin-top: 1.5rem; }
-    .add-toggle {
-      font-size: 13px; color: var(--accent); background: none;
-      border: 0.5px dashed rgba(167,139,250,0.4);
-      padding: 10px 16px; border-radius: 8px; cursor: pointer;
-      width: 100%; text-align: center; transition: background 0.2s;
-    }
-    .add-toggle:hover { background: rgba(167,139,250,0.06); }
-    .add-form {
-      background: var(--bg2); border: 0.5px solid var(--border2);
-      border-radius: 12px; padding: 1.25rem 1.5rem;
-      margin-top: 12px; display: none;
-    }
-    .add-form.open { display: block; }
-    .form-row { margin-bottom: 12px; }
-    .form-row label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-    .form-row input, .form-row textarea, .form-row select {
-      width: 100%; background: var(--bg3); border: 0.5px solid var(--border2);
-      border-radius: 6px; color: var(--text); font-size: 13px;
-      padding: 8px 10px; font-family: inherit; resize: vertical;
-      outline: none; transition: border-color 0.2s;
-    }
-    .form-row input:focus, .form-row textarea:focus { border-color: rgba(167,139,250,0.5); }
-    .form-row textarea { min-height: 70px; }
-    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
-    .form-actions button { font-size: 13px; padding: 7px 16px; border-radius: 7px; cursor: pointer; }
-    .btn-save { background: var(--accent2); color: #fff; border: none; }
-    .btn-cancel { background: transparent; color: var(--muted); border: 0.5px solid var(--border2); }
-    .btn-cancel:hover { color: var(--text); }
+/* ── TERMINAL ── */
+#win-terminal{width:620px;height:440px;top:60px;left:60px;}
+.term-output{font-size:13px;line-height:1.8;margin-bottom:1rem;}
+.term-line{color:var(--text);}
+.term-line.g{color:var(--green);}
+.term-line.m{color:var(--muted2);}
+.term-line.a{color:var(--amber);}
+.term-line.b{color:var(--blue);}
+.term-line.r{color:var(--red);}
+.term-line.indent{padding-left:1.5rem;}
+.term-prompt{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.term-prompt-text{color:var(--green);white-space:nowrap;font-size:13px;}
+.term-input{flex:1;background:transparent;border:none;outline:none;color:var(--green);font-family:var(--font);font-size:13px;caret-color:var(--green);}
 
-    /* CARD ACTIONS */
-    .card-actions { position: absolute; top: 1.25rem; right: 1.5rem; display: flex; gap: 6px; }
-    .icon-btn { background: none; border: none; cursor: pointer; padding: 3px 5px; border-radius: 4px; font-size: 16px; color: var(--muted); transition: color 0.2s; }
-    .icon-btn:hover.edit { color: var(--accent); }
-    .icon-btn:hover.del { color: #f87171; }
+/* ── PROJECTS ── */
+#win-projects{width:640px;height:480px;top:50px;left:120px;}
+.explorer{display:flex;height:100%;gap:0;}
+.explorer-sidebar{width:160px;border-right:1px solid var(--border);padding:0.75rem;flex-shrink:0;}
+.explorer-sidebar .dir-title{font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.75rem;}
+.proj-entry{padding:6px 8px;cursor:pointer;font-size:12px;color:var(--muted2);display:flex;align-items:center;gap:6px;border-radius:2px;transition:all 0.15s;}
+.proj-entry:hover,.proj-entry.active{background:var(--green3);color:var(--green);}
+.proj-entry .picon{font-size:14px;}
+.explorer-main{flex:1;padding:1rem;overflow:auto;}
+.proj-detail{display:none;}
+.proj-detail.active{display:block;}
+.proj-detail h2{font-size:15px;color:var(--green);margin-bottom:4px;}
+.proj-detail .pstatus{font-size:10px;color:var(--amber);letter-spacing:0.1em;margin-bottom:1rem;}
+.proj-detail .pdesc{font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:1rem;}
+.proj-detail .label{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;margin-top:1rem;}
+.stack-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem;}
+.stk{font-size:11px;color:var(--green);border:1px solid var(--border2);padding:2px 8px;background:var(--green3);}
+.module-list{list-style:none;}
+.module-list li{font-size:12px;color:var(--muted2);padding:2px 0;}
+.module-list li::before{content:'✓ ';color:var(--green);}
+.proj-actions{display:flex;gap:8px;margin-top:1.2rem;}
+.pact-btn{font-size:11px;padding:6px 14px;border:1px solid var(--border2);background:transparent;color:var(--green);cursor:pointer;font-family:var(--font);letter-spacing:0.05em;transition:all 0.15s;}
+.pact-btn:hover{background:var(--green3);}
+.file-tree{font-size:12px;line-height:2;color:var(--muted2);}
+.file-tree .dir{color:var(--green);}
+.file-tree .file-line{padding-left:1rem;}
 
-    /* EXPERIENCE */
-    h2.section-title { font-size: 22px; font-weight: 500; margin-bottom: 1.5rem; }
-    .exp-item { padding: 1.25rem 0; border-bottom: 0.5px solid var(--border); }
-    .exp-item:last-of-type { border-bottom: none; }
-    .exp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-    .exp-role { font-size: 15px; font-weight: 500; }
-    .exp-period { font-size: 12px; color: var(--muted); white-space: nowrap; }
-    .exp-org { font-size: 13px; color: var(--accent); margin: 2px 0 6px; }
-    .exp-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+/* ── SKILLS ── */
+#win-skills{width:560px;height:420px;top:80px;left:180px;}
+.skills-section{margin-bottom:1.5rem;}
+.skills-section h3{font-size:10px;color:var(--green);letter-spacing:0.15em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:10px;}
+.skill-item{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.skill-name{font-size:12px;color:var(--muted2);width:140px;flex-shrink:0;}
+.skill-bar{flex:1;height:8px;background:var(--bg3);border:1px solid var(--border);position:relative;overflow:hidden;}
+.skill-fill{height:100%;background:var(--green);box-shadow:0 0 6px var(--green);width:0%;transition:width 1s ease;}
+.skill-tag-list{display:flex;flex-wrap:wrap;gap:6px;}
+.sk{font-size:11px;color:var(--green);border:1px solid var(--border);padding:3px 8px;background:var(--bg2);}
+.sk::before{content:'✓ ';opacity:0.7;}
 
-    /* CONTACT */
-    .contact-links { display: flex; flex-direction: column; gap: 12px; }
-    .contact-link { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-    .contact-link i { font-size: 18px; color: var(--accent); }
-    .contact-link:hover { color: var(--text); }
+/* ── ABOUT ── */
+#win-about{width:520px;height:420px;top:90px;left:200px;}
+.about-header{border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1rem;}
+.about-header .name{font-size:20px;color:var(--green);font-weight:bold;letter-spacing:0.05em;}
+.about-header .role{font-size:12px;color:var(--muted2);margin-top:4px;}
+.info-row{display:flex;margin-bottom:8px;gap:12px;font-size:12px;}
+.info-label{color:var(--muted);width:110px;flex-shrink:0;}
+.info-val{color:var(--text);}
+.info-val.green{color:var(--green);}
+.process-list{margin-top:1rem;}
+.process-list h3{font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;}
+.proc{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);margin-bottom:5px;}
+.proc::before{content:'▶';color:var(--green);font-size:10px;}
 
-    /* MODAL */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75); z-index: 200;
-      align-items: center; justify-content: center; padding: 1rem;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 14px; padding: 1.5rem; width: 100%; max-width: 500px; }
-    .modal h3 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
-    .modal-actions button { font-size: 13px; padding: 7px 16px; border-radius: 7px; cursor: pointer; }
+/* ── CONTACT ── */
+#win-contact{width:460px;height:340px;top:100px;left:220px;}
+.contact-item{display:flex;align-items:flex-start;gap:12px;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.contact-item:last-child{border-bottom:none;}
+.contact-label{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;width:80px;flex-shrink:0;padding-top:2px;}
+.contact-val{font-size:13px;color:var(--text);}
+.contact-val a{color:var(--green);text-decoration:none;}
+.contact-val a:hover{text-decoration:underline;}
 
-    /* TOAST */
-    .toast {
-      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300;
-      background: var(--bg2); border: 0.5px solid var(--border2);
-      border-left: 3px solid var(--accent);
-      padding: 10px 16px; border-radius: 8px;
-      font-size: 13px; color: var(--text);
-      opacity: 0; transform: translateY(8px);
-      transition: opacity 0.25s, transform 0.25s;
-      pointer-events: none;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
+/* ── RESUME ── */
+#win-resume{width:520px;height:440px;top:70px;left:160px;}
+.resume-section{margin-bottom:1.2rem;}
+.resume-section h3{font-size:10px;color:var(--green);letter-spacing:0.15em;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:10px;}
+.resume-entry{margin-bottom:10px;}
+.resume-entry .rtitle{font-size:13px;color:var(--text);font-weight:bold;}
+.resume-entry .rmeta{font-size:11px;color:var(--muted2);margin-bottom:4px;}
+.resume-entry .rdesc{font-size:12px;color:var(--muted2);line-height:1.6;}
+.download-btn{display:inline-block;font-size:11px;padding:6px 14px;border:1px solid var(--border2);color:var(--green);cursor:pointer;font-family:var(--font);margin-top:0.5rem;background:transparent;letter-spacing:0.05em;transition:all 0.15s;}
+.download-btn:hover{background:var(--green3);}
 
-    /* RESPONSIVE */
-    @media (max-width: 600px) {
-      nav { padding: 0 1rem; }
-      .nav-links { gap: 1rem; }
-      section { padding: 3rem 1.25rem; }
-      .hero h1 { font-size: 34px; }
-      .hero .tagline { font-size: 15px; }
-      .skills-grid { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
+/* ── UTILS ── */
+.section-label{font-size:10px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;}
+</style>
 </head>
 <body>
 
-<nav>
-  <span class="nav-name">Ansh</span>
-  <div class="nav-links">
-    <a href="#about">About</a>
-    <a href="#skills">Skills</a>
-    <a href="#projects">Projects</a>
-    <a href="#experience">Experience</a>
-    <a href="#contact">Contact</a>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero" id="about">
-  <div class="section-label">Software Engineer</div>
-  <h1>Hi, I'm <span>Ansh Singh</span></h1>
-  <p class="tagline">CSE graduate building compilers, backend systems, and AI-integrated tools. Based in Lucknow, India.</p>
-  <div class="hero-chips">
-    <span class="chip">Compiler Design</span>
-    <span class="chip">Backend Development</span>
-    <span class="chip">System Programming</span>
-    <span class="chip">LLVM</span>
-    <span class="chip">Spring · Hibernate</span>
-  </div>
-  <div class="hero-actions">
-    <a class="btn-primary" href="#projects">View Projects</a>
-    <a class="btn-ghost" href="#contact">Get in Touch</a>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- SKILLS -->
-<section id="skills">
-  <div class="section-label" style="margin-bottom:1.25rem">Technical Skills</div>
-  <div class="skills-grid">
-    <div class="skill-group">
-      <h3>Languages</h3>
-      <div class="skill-tags">
-        <span class="stag">C++</span><span class="stag">Java</span><span class="stag">JavaScript</span><span class="stag">C</span><span class="stag">Python</span>
-      </div>
-    </div>
-    <div class="skill-group">
-      <h3>Backend</h3>
-      <div class="skill-tags">
-        <span class="stag">Spring</span><span class="stag">Hibernate</span><span class="stag">Servlets</span><span class="stag">JSP</span><span class="stag">JDBC</span>
-      </div>
-    </div>
-    <div class="skill-group">
-      <h3>Systems & Tools</h3>
-      <div class="skill-tags">
-        <span class="stag">LLVM</span><span class="stag">CMake</span><span class="stag">Git</span><span class="stag">Linux</span><span class="stag">Android Studio</span>
-      </div>
-    </div>
-    <div class="skill-group">
-      <h3>Database & Web</h3>
-      <div class="skill-tags">
-        <span class="stag">MySQL</span><span class="stag">SQL</span><span class="stag">HTML5</span><span class="stag">CSS3</span><span class="stag">WebRTC</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- PROJECTS -->
-<section id="projects">
-  <div class="section-head">
-    <h2>Projects</h2>
-    <span class="proj-count" id="proj-count">2 projects</span>
-  </div>
-  <div class="projects-list" id="projects-list"></div>
-  <div class="add-section">
-    <button class="add-toggle" onclick="toggleAddForm()">
-      <i class="ti ti-plus" aria-hidden="true"></i> Add a project
-    </button>
-    <div class="add-form" id="add-form">
-      <div class="form-row"><label>Project name</label><input type="text" id="f-name" placeholder="e.g. AI Grader System"></div>
-      <div class="form-row"><label>Short description</label><textarea id="f-desc" placeholder="What does it do? What makes it interesting?"></textarea></div>
-      <div class="form-row"><label>Tech stack (comma-separated)</label><input type="text" id="f-stack" placeholder="e.g. Python, OpenAI API, SQLite"></div>
-      <div class="form-row">
-        <label>Mark as featured?</label>
-        <select id="f-featured"><option value="no">No</option><option value="yes">Yes — show star badge</option></select>
-      </div>
-      <div class="form-row"><label>GitHub / Live link (optional)</label><input type="text" id="f-link" placeholder="https://github.com/AnshSingh24"></div>
-      <div class="form-actions">
-        <button class="btn-cancel" onclick="toggleAddForm()">Cancel</button>
-        <button class="btn-save" onclick="saveProject()">Save project</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- EXPERIENCE -->
-<section id="experience">
-  <h2 class="section-title">Experience & Education</h2>
-  <div class="exp-item">
-    <div class="exp-header">
-      <div>
-        <div class="exp-role">Bachelor of Engineering — Computer Science</div>
-        <div class="exp-org">B.E. in Computer Science Engineering</div>
-      </div>
-      <span class="exp-period">2022 – 2026</span>
-    </div>
-    <p class="exp-desc">Graduated with a focus on compiler design, systems programming, data structures, and backend web development. Built multiple projects from scratch including a complete programming language and compiler.</p>
-  </div>
-  <div id="exp-list"></div>
-  <div class="add-section" style="margin-top:1rem">
-    <button class="add-toggle" onclick="toggleExpForm()">
-      <i class="ti ti-plus" aria-hidden="true"></i> Add experience / internship
-    </button>
-    <div class="add-form" id="exp-form">
-      <div class="form-row"><label>Role / Title</label><input type="text" id="e-role" placeholder="e.g. Backend Developer Intern"></div>
-      <div class="form-row"><label>Organisation</label><input type="text" id="e-org" placeholder="e.g. Acme Corp"></div>
-      <div class="form-row"><label>Period</label><input type="text" id="e-period" placeholder="e.g. Jun 2024 – Aug 2024"></div>
-      <div class="form-row"><label>Description</label><textarea id="e-desc" placeholder="What did you build or learn?"></textarea></div>
-      <div class="form-actions">
-        <button class="btn-cancel" onclick="toggleExpForm()">Cancel</button>
-        <button class="btn-save" onclick="saveExp()">Save</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="divider">
-
-<!-- CONTACT -->
-<section id="contact">
-  <div class="section-label" style="margin-bottom:0.75rem">Contact</div>
-  <h2 class="section-title">Let's connect</h2>
-  <p style="font-size:14px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6">
-    Open to full-time roles and internships in backend, systems engineering, or compiler-related work.
-  </p>
-  <div class="contact-links">
-    <span class="contact-link"><i class="ti ti-map-pin" aria-hidden="true"></i>Lucknow, Uttar Pradesh, India</span>
-    <!-- UPDATE these with your real links -->
-    <a class="contact-link" href="https://github.com/AnshSingh24" target="_blank"><i class="ti ti-brand-github" aria-hidden="true"></i>github.com/AnshSingh24</a>
-    <a class="contact-link" href="https://linkedin.com/in/ansh-singh-9bb97631a" target="_blank"><i class="ti ti-brand-linkedin" aria-hidden="true"></i>linkedin.com/in/ansh-singh-9bb97631a</a>
-    <a class="contact-link" href="mailto:anshsingh175428@gmail.com"><i class="ti ti-mail" aria-hidden="true"></i>anshsingh175428@gmail.com</a>
-  </div>
-</section>
-
-<!-- EDIT MODAL -->
-<div class="modal-overlay" id="edit-modal">
-  <div class="modal">
-    <h3>Edit project</h3>
-    <div class="form-row"><label>Name</label><input type="text" id="em-name"></div>
-    <div class="form-row"><label>Description</label><textarea id="em-desc"></textarea></div>
-    <div class="form-row"><label>Tech stack</label><input type="text" id="em-stack"></div>
-    <div class="form-row"><label>Featured?</label><select id="em-featured"><option value="no">No</option><option value="yes">Yes</option></select></div>
-    <div class="form-row"><label>Link</label><input type="text" id="em-link"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveEdit()">Save changes</button>
-    </div>
+<!-- ══════════════ BOOT ══════════════ -->
+<div id="boot">
+  <div class="boot-box">
+    <div class="boot-title">ANSH OS v1.0</div>
+    <div class="boot-sub">DEVELOPER OPERATING SYSTEM</div>
+    <div id="boot-lines"></div>
+    <div class="progress-wrap"><div class="progress-bar" id="pbar"></div></div>
+    <div class="progress-label" id="plabel">Initializing...</div>
+    <div class="boot-enter" id="boot-enter" onclick="enterDesktop()">[ ENTER SYSTEM ] <span class="cursor"></span></div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ══════════════ DESKTOP ══════════════ -->
+<div id="desktop">
+  <!-- taskbar -->
+  <div class="taskbar">
+    <div class="taskbar-left">
+      <span class="taskbar-logo">⬡ ANSH OS</span>
+      <span class="taskbar-sep">|</span>
+      <span class="taskbar-btn" onclick="showLauncher()">Desktop</span>
+      <span class="taskbar-btn" id="tb-terminal" onclick="openApp('terminal')">Terminal</span>
+      <span class="taskbar-btn" id="tb-projects" onclick="openApp('projects')">Projects</span>
+      <span class="taskbar-btn" id="tb-skills" onclick="openApp('skills')">Skills</span>
+      <span class="taskbar-btn" id="tb-about" onclick="openApp('about')">About</span>
+      <span class="taskbar-btn" id="tb-contact" onclick="openApp('contact')">Contact</span>
+      <span class="taskbar-btn" id="tb-resume" onclick="openApp('resume')">Resume</span>
+    </div>
+    <div class="taskbar-right">
+      <span class="taskbar-status">● ONLINE</span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </div>
+
+  <div class="desktop-body">
+
+    <!-- Launcher -->
+    <div id="launcher">
+      <div class="launcher-header">
+        <h1>ANSH OS</h1>
+        <p>BACKEND DEVELOPER · COMPILER ENGINEER · AI ENTHUSIAST</p>
+      </div>
+      <div class="app-grid">
+        <div class="app-icon" onclick="openApp('projects')">
+          <span class="icon">📁</span>
+          <div class="name">Projects</div>
+          <div class="ext">Explorer.exe</div>
+        </div>
+        <div class="app-icon" onclick="openApp('terminal')">
+          <span class="icon">💻</span>
+          <div class="name">Terminal</div>
+          <div class="ext">cmd.exe</div>
+        </div>
+        <div class="app-icon" onclick="openApp('skills')">
+          <span class="icon">⚙️</span>
+          <div class="name">Skills</div>
+          <div class="ext">SysInfo.exe</div>
+        </div>
+        <div class="app-icon" onclick="openApp('about')">
+          <span class="icon">🖥️</span>
+          <div class="name">About</div>
+          <div class="ext">About.exe</div>
+        </div>
+        <div class="app-icon" onclick="openApp('resume')">
+          <span class="icon">📄</span>
+          <div class="name">Resume</div>
+          <div class="ext">Resume.exe</div>
+        </div>
+        <div class="app-icon" onclick="openApp('contact')">
+          <span class="icon">📡</span>
+          <div class="name">Contact</div>
+          <div class="ext">Contact.exe</div>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div class="status-item">Developer: <span>Ansh Singh</span></div>
+        <div class="status-item">Role: <span>Backend Developer</span></div>
+        <div class="status-item">Status: <span>Open for opportunities</span></div>
+      </div>
+    </div>
+
+    <!-- ── TERMINAL ── -->
+    <div class="win" id="win-terminal">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-terminal')">
+        <div class="win-dot close" onclick="closeWin('terminal')"></div>
+        <div class="win-dot min" onclick="hideWin('terminal')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">ansh@anshos:~$</div>
+      </div>
+      <div class="win-body" id="term-body" onclick="focusTermInput()">
+        <div class="term-output" id="term-output">
+          <div class="term-line g">AnshOS Terminal v1.0</div>
+          <div class="term-line m">Type <span style="color:var(--amber)">help</span> to see available commands.</div>
+          <div class="term-line m">─────────────────────────────────</div>
+        </div>
+        <div class="term-prompt">
+          <span class="term-prompt-text">ansh@anshos:~$</span>
+          <input class="term-input" id="term-input" type="text" autocomplete="off" spellcheck="false" onkeydown="handleTermKey(event)">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROJECTS ── -->
+    <div class="win" id="win-projects">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-projects')">
+        <div class="win-dot close" onclick="closeWin('projects')"></div>
+        <div class="win-dot min" onclick="hideWin('projects')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">/home/ansh/projects — Explorer</div>
+      </div>
+      <div class="win-body" style="padding:0;">
+        <div class="explorer">
+          <div class="explorer-sidebar">
+            <div class="dir-title">/projects</div>
+            <div class="proj-entry active" onclick="showProj('nexa',this)" data-id="nexa">
+              <span class="picon">📁</span> NEXA-Compiler
+            </div>
+            <div class="proj-entry" onclick="showProj('interview',this)" data-id="interview">
+              <span class="picon">📁</span> AI-Interview-Coach
+            </div>
+            <div class="proj-entry" onclick="showProj('typing',this)" data-id="typing">
+              <span class="picon">📁</span> Typing-Legends
+            </div>
+            <div class="proj-entry" onclick="showProj('analytics',this)" data-id="analytics">
+              <span class="picon">📁</span> Bestseller-Analytics
+            </div>
+            <div class="proj-entry" onclick="showProj('tax',this)" data-id="tax">
+              <span class="picon">📁</span> TaxWise
+            </div>
+          </div>
+          <div class="explorer-main" id="proj-main"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SKILLS ── -->
+    <div class="win" id="win-skills">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-skills')">
+        <div class="win-dot close" onclick="closeWin('skills')"></div>
+        <div class="win-dot min" onclick="hideWin('skills')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">SYSTEM MODULES — Skills.exe</div>
+      </div>
+      <div class="win-body">
+        <div class="skills-section">
+          <h3>Backend Core</h3>
+          <div class="skill-item"><span class="skill-name">Java</span><div class="skill-bar"><div class="skill-fill" data-w="88"></div></div></div>
+          <div class="skill-item"><span class="skill-name">Spring Boot</span><div class="skill-bar"><div class="skill-fill" data-w="80"></div></div></div>
+          <div class="skill-item"><span class="skill-name">Hibernate / JPA</span><div class="skill-bar"><div class="skill-fill" data-w="75"></div></div></div>
+          <div class="skill-item"><span class="skill-name">REST APIs</span><div class="skill-bar"><div class="skill-fill" data-w="82"></div></div></div>
+          <div class="skill-item"><span class="skill-name">MySQL / SQL</span><div class="skill-bar"><div class="skill-fill" data-w="78"></div></div></div>
+        </div>
+        <div class="skills-section">
+          <h3>Systems & Compiler</h3>
+          <div class="skill-item"><span class="skill-name">C++</span><div class="skill-bar"><div class="skill-fill" data-w="82"></div></div></div>
+          <div class="skill-item"><span class="skill-name">LLVM</span><div class="skill-bar"><div class="skill-fill" data-w="70"></div></div></div>
+          <div class="skill-item"><span class="skill-name">CMake</span><div class="skill-bar"><div class="skill-fill" data-w="65"></div></div></div>
+          <div class="skill-item"><span class="skill-name">C</span><div class="skill-bar"><div class="skill-fill" data-w="72"></div></div></div>
+        </div>
+        <div class="skills-section">
+          <h3>Web & Scripting</h3>
+          <div class="skill-item"><span class="skill-name">JavaScript</span><div class="skill-bar"><div class="skill-fill" data-w="72"></div></div></div>
+          <div class="skill-item"><span class="skill-name">HTML / CSS</span><div class="skill-bar"><div class="skill-fill" data-w="78"></div></div></div>
+          <div class="skill-item"><span class="skill-name">Python</span><div class="skill-bar"><div class="skill-fill" data-w="60"></div></div></div>
+        </div>
+        <div class="skills-section">
+          <h3>Tools</h3>
+          <div class="skill-tag-list">
+            <span class="sk">Git</span><span class="sk">Linux</span><span class="sk">Android Studio</span>
+            <span class="sk">Figma</span><span class="sk">WebRTC</span><span class="sk">GitHub</span>
+            <span class="sk">Groq API</span><span class="sk">Ollama</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABOUT ── -->
+    <div class="win" id="win-about">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-about')">
+        <div class="win-dot close" onclick="closeWin('about')"></div>
+        <div class="win-dot min" onclick="hideWin('about')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">SYSTEM INFORMATION — About.exe</div>
+      </div>
+      <div class="win-body">
+        <div class="about-header">
+          <div class="name">Ansh Singh</div>
+          <div class="role">Backend Developer · Compiler Engineer · AI Enthusiast</div>
+        </div>
+        <div class="info-row"><span class="info-label">OS</span><span class="info-val">AnshOS v1.0</span></div>
+        <div class="info-row"><span class="info-label">Location</span><span class="info-val">Lucknow, Uttar Pradesh, India</span></div>
+        <div class="info-row"><span class="info-label">Degree</span><span class="info-val">B.E. Computer Science Engineering (2022–2026)</span></div>
+        <div class="info-row"><span class="info-label">Specialization</span><span class="info-val">Backend + Systems + Compiler Design</span></div>
+        <div class="info-row"><span class="info-label">Status</span><span class="info-val green">● Open for opportunities</span></div>
+        <div class="info-row"><span class="info-label">Languages</span><span class="info-val">Java · C++ · JavaScript · Python · C</span></div>
+        <div class="info-row"><span class="info-label">Frameworks</span><span class="info-val">Spring Boot · Hibernate · JDBC · Servlets</span></div>
+        <div class="process-list">
+          <h3>CURRENT PROCESSES</h3>
+          <div class="proc">AI Interview Coach — v1.0.0 shipped</div>
+          <div class="proc">Typing Legends: Last Stand — Phase 0</div>
+          <div class="proc">AnshOS Portfolio — running</div>
+          <div class="proc">Learning: System Design · LLM Engineering</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTACT ── -->
+    <div class="win" id="win-contact">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-contact')">
+        <div class="win-dot close" onclick="closeWin('contact')"></div>
+        <div class="win-dot min" onclick="hideWin('contact')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">NETWORK — Contact.exe</div>
+      </div>
+      <div class="win-body">
+        <div class="term-line g" style="margin-bottom:1rem;font-size:12px;">Establishing connection... <span style="color:var(--green)">READY</span></div>
+        <div class="contact-item">
+          <span class="contact-label">Location</span>
+          <span class="contact-val">Lucknow, Uttar Pradesh, India</span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">GitHub</span>
+          <span class="contact-val"><a href="https://github.com/AnshSingh24" target="_blank">github.com/AnshSingh24</a></span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">LinkedIn</span>
+          <span class="contact-val"><a href="https://linkedin.com/in/ansh-singh-9bb97631a" target="_blank">linkedin.com/in/ansh-singh-9bb97631a</a></span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-label">Email</span>
+          <span class="contact-val"><a href="anshsingh175428@gmail.com">anshsingh175428@gmail.com</a></span>
+        </div>
+        <div class="contact-item" style="border:none">
+          <span class="contact-label">Open to</span>
+          <span class="contact-val" style="color:var(--green)">Backend · Systems · Compiler roles · Internships</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESUME ── -->
+    <div class="win" id="win-resume">
+      <div class="win-titlebar" onmousedown="startDrag(event,'win-resume')">
+        <div class="win-dot close" onclick="closeWin('resume')"></div>
+        <div class="win-dot min" onclick="hideWin('resume')"></div>
+        <div class="win-dot max"></div>
+        <div class="win-title">resume.pdf — Resume.exe</div>
+      </div>
+      <div class="win-body">
+        <div class="resume-section">
+          <h3>Education</h3>
+          <div class="resume-entry">
+            <div class="rtitle">B.E. — Computer Science Engineering</div>
+            <div class="rmeta">2022 – 2026</div>
+            <div class="rdesc">Focus: Compiler Design, Systems Programming, Backend Development, Data Structures & Algorithms.</div>
+          </div>
+        </div>
+        <div class="resume-section">
+          <h3>Key Projects</h3>
+          <div class="resume-entry">
+            <div class="rtitle">NEXA Programming Language & Compiler</div>
+            <div class="rmeta">C++ · LLVM · CMake</div>
+            <div class="rdesc">End-to-end compiler: handwritten lexer, recursive descent parser, AST, semantic analysis, LLVM IR → native Linux binaries.</div>
+          </div>
+          <div class="resume-entry">
+            <div class="rtitle">Adaptive AI Interview Coach</div>
+            <div class="rmeta">Java · Spring Boot · Groq API · Ollama</div>
+            <div class="rdesc">State-machine interview simulator with LLM provider abstraction, adaptive question selection, and structured evaluation pipeline. 54 passing tests. v1.0.0 shipped.</div>
+          </div>
+          <div class="resume-entry">
+            <div class="rtitle">Bestseller Analytics Dashboard</div>
+            <div class="rmeta">Python · PostgreSQL · Streamlit · GitHub Actions</div>
+            <div class="rdesc">Automated weekly pipeline fetching Amazon India data, storing in Neon PostgreSQL, and visualizing trends via Plotly.</div>
+          </div>
+        </div>
+        <div class="resume-section">
+          <h3>Core CS</h3>
+          <div class="rdesc" style="font-size:12px;color:var(--muted2);line-height:2;">
+            DSA &nbsp;·&nbsp; OOP &nbsp;·&nbsp; DBMS &nbsp;·&nbsp; OS &nbsp;·&nbsp; Computer Networks &nbsp;·&nbsp; Compiler Design &nbsp;·&nbsp; Theory of Computation &nbsp;·&nbsp; Software Engineering
+          </div>
+        </div>
+        <button class="download-btn" onclick="alert('Add your resume PDF link here!')">↓ Download PDF Resume</button>
+      </div>
+    </div>
+
+  </div><!-- desktop-body -->
+</div><!-- desktop -->
 
 <script>
-  const DEFAULT_PROJECTS = [
-    {
-      id: 'nexa',
-      name: 'NEXA Programming Language & Compiler',
-      desc: 'Designed and built a complete compiler for a custom language — handwritten lexer, recursive descent parser, AST, semantic analysis, LLVM IR generation, and native Linux binary output.',
-      stack: ['C++', 'LLVM', 'CMake', 'Git'],
-      featured: true,
-      link: ''
-    },
-    {
-      id: 'tax',
-      name: 'Tax Information Website',
-      desc: 'A web application providing structured tax-related information and user guidance, built with core web technologies.',
-      stack: ['HTML', 'CSS', 'JavaScript'],
-      featured: false,
-      link: ''
-    },
-    {
-      id: 'task-manager',
-      name: 'Task Management System',
-      desc: 'A full-stack web application that allows users to register, securely log in, and manage personal tasks with complete CRUD functionality. Features include task status tracking, form validation, exception handling, and user-specific task management. Built using Spring Boot and deployed on Railway with a MySQL database.',
-      stack: ['Java', 'Spring Boot', 'Spring Security', 'Spring Data JPA', 'Hibernate', 'MySQL', 'Thymeleaf', 'Bootstrap 5', 'Maven', 'Railway', 'Git', 'GitHub'],
-      featured: true,
-      link: 'https://github.com/AnshSingh24/task-management-system' // You can update this with the actual link
-    },
-    {
-      id: 'bestseller-analytics',
-      name: 'Weekly Bestseller Analytics Dashboard',
-      desc: 'An automated data engineering platform that tracks Amazon India\'s bestselling books every week, stores historical snapshots in PostgreSQL, and provides interactive analytics and trend visualizations through a Streamlit dashboard. The project uses scheduled ETL pipelines and historical data modeling to analyze author dominance, genre popularity, price changes, and ranking trends over time.',
-      stack: ['Python', 'Pandas', 'PostgreSQL', 'Neon PostgreSQL', 'Streamlit', 'Plotly', 'GitHub Actions', 'Rainforest API', 'SQLAlchemy', 'psycopg2', 'Python'],
-      featured: true,
-      link: 'https://github.com/AnshSingh24/weekly-bestseller-analytics' // You can update this with the actual link
-    }
-  ];
+// ══════════ BOOT SEQUENCE ══════════
+const bootLines = [
+  {text:'Initializing kernel...', delay:400},
+  {text:'<span class="ok">✓</span> Kernel loaded', delay:300},
+  {text:'<span class="ok">✓</span> Developer profile found: Ansh Singh', delay:400},
+  {text:'<span class="ok">✓</span> 5 projects indexed', delay:350},
+  {text:'<span class="ok">✓</span> Skills module loaded', delay:300},
+  {text:'<span class="ok">✓</span> Terminal ready', delay:350},
+  {text:'<span class="ok">✓</span> Network interfaces up', delay:300},
+  {text:'─────────────────────────────────', delay:200},
+  {text:'System ready. Welcome, Visitor.', delay:400},
+];
 
-  let projects = JSON.parse(localStorage.getItem('portfolio_projects') || 'null') || DEFAULT_PROJECTS;
-  let expItems = JSON.parse(localStorage.getItem('portfolio_exp') || '[]');
-  let editingId = null;
-
-  function save() { localStorage.setItem('portfolio_projects', JSON.stringify(projects)); }
-  function saveExpData() { localStorage.setItem('portfolio_exp', JSON.stringify(expItems)); }
-
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2500);
-  }
-
-  function renderProjects() {
-    const list = document.getElementById('projects-list');
-    const count = document.getElementById('proj-count');
-    count.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '');
-    list.innerHTML = projects.map(p => `
-      <div class="project-card" id="pc-${p.id}">
-        <div class="project-header">
-          <span class="project-title">${p.name}</span>
-          ${p.featured ? '<span class="project-star">★ Featured</span>' : ''}
-        </div>
-        <p class="project-desc">${p.desc}</p>
-        <div class="project-stack">
-          ${p.stack.map(s => `<span class="stack-tag">${s}</span>`).join('')}
-          ${p.link ? `<a class="proj-link" href="${p.link}" target="_blank">↗ View</a>` : ''}
-        </div>
-        <div class="card-actions">
-          <button class="icon-btn edit" onclick="openEdit('${p.id}')" title="Edit"><i class="ti ti-edit" aria-hidden="true"></i></button>
-          <button class="icon-btn del" onclick="deleteProject('${p.id}')" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function renderExp() {
-    const container = document.getElementById('exp-list');
-    container.innerHTML = expItems.map((e, i) => `
-      <div class="exp-item">
-        <div class="exp-header">
-          <div>
-            <div class="exp-role">${e.role}</div>
-            <div class="exp-org">${e.org}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span class="exp-period">${e.period}</span>
-            <button class="icon-btn del" onclick="deleteExp(${i})" title="Delete"><i class="ti ti-trash" aria-hidden="true"></i></button>
-          </div>
-        </div>
-        <p class="exp-desc">${e.desc}</p>
-      </div>
-    `).join('');
-  }
-
-  function toggleAddForm() {
-    const f = document.getElementById('add-form');
-    f.classList.toggle('open');
-    if (!f.classList.contains('open')) {
-      ['f-name','f-desc','f-stack','f-link'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('f-featured').value = 'no';
-    }
-  }
-
-  function saveProject() {
-    const name = document.getElementById('f-name').value.trim();
-    const desc = document.getElementById('f-desc').value.trim();
-    if (!name || !desc) { alert('Name and description are required.'); return; }
-    const stack = document.getElementById('f-stack').value.split(',').map(s => s.trim()).filter(Boolean);
-    const featured = document.getElementById('f-featured').value === 'yes';
-    const link = document.getElementById('f-link').value.trim();
-    projects.push({ id: 'p_' + Date.now(), name, desc, stack, featured, link });
-    save(); renderProjects(); toggleAddForm();
-    toast('Project added');
-  }
-
-  function deleteProject(id) {
-    if (!confirm('Remove this project?')) return;
-    projects = projects.filter(p => p.id !== id);
-    save(); renderProjects();
-    toast('Project removed');
-  }
-
-  function openEdit(id) {
-    const p = projects.find(x => x.id === id);
-    if (!p) return;
-    editingId = id;
-    document.getElementById('em-name').value = p.name;
-    document.getElementById('em-desc').value = p.desc;
-    document.getElementById('em-stack').value = p.stack.join(', ');
-    document.getElementById('em-featured').value = p.featured ? 'yes' : 'no';
-    document.getElementById('em-link').value = p.link || '';
-    document.getElementById('edit-modal').classList.add('open');
-  }
-
-  function closeModal() {
-    document.getElementById('edit-modal').classList.remove('open');
-    editingId = null;
-  }
-
-  function saveEdit() {
-    const idx = projects.findIndex(p => p.id === editingId);
-    if (idx === -1) return;
-    projects[idx] = {
-      ...projects[idx],
-      name: document.getElementById('em-name').value.trim(),
-      desc: document.getElementById('em-desc').value.trim(),
-      stack: document.getElementById('em-stack').value.split(',').map(s => s.trim()).filter(Boolean),
-      featured: document.getElementById('em-featured').value === 'yes',
-      link: document.getElementById('em-link').value.trim()
-    };
-    save(); renderProjects(); closeModal();
-    toast('Project updated');
-  }
-
-  function toggleExpForm() {
-    document.getElementById('exp-form').classList.toggle('open');
-  }
-
-  function saveExp() {
-    const role = document.getElementById('e-role').value.trim();
-    const org = document.getElementById('e-org').value.trim();
-    if (!role || !org) { alert('Role and organisation are required.'); return; }
-    expItems.push({
-      role, org,
-      period: document.getElementById('e-period').value.trim(),
-      desc: document.getElementById('e-desc').value.trim()
-    });
-    saveExpData(); renderExp(); toggleExpForm();
-    ['e-role','e-org','e-period','e-desc'].forEach(id => document.getElementById(id).value = '');
-    toast('Entry added');
-  }
-
-  function deleteExp(i) {
-    if (!confirm('Remove this entry?')) return;
-    expItems.splice(i, 1);
-    saveExpData(); renderExp();
-    toast('Entry removed');
-  }
-
-  document.getElementById('edit-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+let bootDone = false;
+function runBoot(){
+  const container = document.getElementById('boot-lines');
+  const pbar = document.getElementById('pbar');
+  const plabel = document.getElementById('plabel');
+  const enter = document.getElementById('boot-enter');
+  let t = 300;
+  bootLines.forEach((l,i)=>{
+    setTimeout(()=>{
+      const d = document.createElement('div');
+      d.className='boot-line';
+      d.innerHTML = l.text;
+      container.appendChild(d);
+      requestAnimationFrame(()=>d.classList.add('show'));
+      const pct = Math.round(((i+1)/bootLines.length)*100);
+      pbar.style.width = pct+'%';
+      plabel.textContent = pct < 100 ? `Loading... ${pct}%` : 'Boot complete.';
+    }, t);
+    t += l.delay;
   });
+  setTimeout(()=>{
+    enter.classList.add('visible');
+    bootDone = true;
+  }, t + 200);
+  // allow pressing Enter to continue
+  document.addEventListener('keydown', e=>{
+    if(bootDone && (e.key==='Enter'||e.key===' ')) enterDesktop();
+  }, {once:false});
+}
 
-  renderProjects();
-  renderExp();
+function enterDesktop(){
+  if(!bootDone) return;
+  const boot = document.getElementById('boot');
+  boot.style.transition = 'opacity 0.6s';
+  boot.style.opacity = '0';
+  setTimeout(()=>{
+    boot.style.display='none';
+    const d = document.getElementById('desktop');
+    d.style.display='flex';
+    startClock();
+    animateSkillBars();
+    renderProject('nexa');
+  }, 600);
+}
+
+// ══════════ CLOCK ══════════
+function startClock(){
+  function tick(){
+    const n=new Date();
+    document.getElementById('clock').textContent=
+      String(n.getHours()).padStart(2,'0')+':'+
+      String(n.getMinutes()).padStart(2,'0')+':'+
+      String(n.getSeconds()).padStart(2,'0');
+  }
+  tick(); setInterval(tick,1000);
+}
+
+// ══════════ WINDOWS ══════════
+const wins = ['terminal','projects','skills','about','contact','resume'];
+const winOffsets = {terminal:[60,60],projects:[120,50],skills:[180,80],about:[200,90],contact:[220,100],resume:[160,70]};
+let zTop = 10;
+
+function openApp(name){
+  const w = document.getElementById('win-'+name);
+  if(!w) return;
+  if(!w.classList.contains('open')){
+    w.classList.add('open');
+    w.style.left = winOffsets[name][0]+'px';
+    w.style.top = winOffsets[name][1]+'px';
+    if(name==='skills') setTimeout(animateSkillBars, 100);
+  }
+  bringToFront(name);
+  document.getElementById('launcher').style.display='none';
+  document.getElementById('tb-'+name)?.classList.add('active');
+  if(name==='terminal') setTimeout(()=>document.getElementById('term-input')?.focus(),100);
+}
+
+function closeWin(name){
+  const w = document.getElementById('win-'+name);
+  w.classList.remove('open');
+  document.getElementById('tb-'+name)?.classList.remove('active');
+  const anyOpen = wins.some(n=>document.getElementById('win-'+n).classList.contains('open'));
+  if(!anyOpen) showLauncher();
+}
+
+function hideWin(name){
+  document.getElementById('win-'+name).classList.remove('open');
+  document.getElementById('tb-'+name)?.classList.remove('active');
+}
+
+function showLauncher(){
+  wins.forEach(n=>{ document.getElementById('win-'+n).classList.remove('open'); document.getElementById('tb-'+n)?.classList.remove('active'); });
+  document.getElementById('launcher').style.display='flex';
+}
+
+function bringToFront(name){
+  zTop++;
+  document.getElementById('win-'+name).style.zIndex = zTop;
+}
+
+// ══════════ DRAGGING ══════════
+let drag = null;
+function startDrag(e, winId){
+  if(e.target.classList.contains('win-dot')) return;
+  const w = document.getElementById(winId);
+  bringToFront(winId.replace('win-',''));
+  const rect = w.getBoundingClientRect();
+  drag = { el:w, ox: e.clientX - rect.left, oy: e.clientY - rect.top };
+}
+document.addEventListener('mousemove', e=>{
+  if(!drag) return;
+  drag.el.style.left = (e.clientX - drag.ox)+'px';
+  drag.el.style.top  = (e.clientY - drag.oy)+'px';
+});
+document.addEventListener('mouseup', ()=>{ drag=null; });
+
+// ══════════ SKILL BARS ══════════
+function animateSkillBars(){
+  document.querySelectorAll('.skill-fill').forEach(el=>{
+    const w = el.dataset.w;
+    el.style.width = w+'%';
+  });
+}
+
+// ══════════ PROJECTS ══════════
+const projects = {
+  nexa:{
+    name:'NEXA Compiler',
+    file:'NEXA-Compiler',
+    status:'SHIPPED',
+    desc:'A complete compiler for a custom statically-typed programming language, built from scratch. Implements every stage of the compilation pipeline targeting LLVM IR for native Linux binary generation.',
+    stack:['C++','LLVM','CMake','Git'],
+    modules:['Handwritten Lexer','Recursive Descent Parser','Abstract Syntax Tree','Semantic Analysis','LLVM IR Generation','Native Binary Output','CMake Build System'],
+    github:'https://github.com/AnshSingh24',
+    demo:'',
+    tree:['lexer.cpp','parser.cpp','ast.h','semantic.cpp','codegen.cpp','main.cpp','CMakeLists.txt','README.md']
+  },
+  interview:{
+    name:'Adaptive AI Interview Coach',
+    file:'AI-Interview-Coach',
+    status:'v1.0.0 LIVE',
+    desc:'AI-powered mock interview platform with a two-field state machine (InterviewState + SessionLifecycle), LLM provider abstraction layer (Groq + Ollama), evaluation pipeline with retry logic, and priority-tier adaptive question selection.',
+    stack:['Java','Spring Boot','Groq API','Ollama','H2 DB','JUnit 5','Mockito'],
+    modules:['State Machine Engine','LLM Provider Abstraction','Evaluation Pipeline','Adaptive Question Selector','Structured Output Parser','54 Passing Tests'],
+    github:'https://github.com/AnshSingh24/AI-Interview-Platform',
+    demo:''
+  },
+  typing:{
+    name:'Typing Legends: Last Stand',
+    file:'Typing-Legends',
+    status:'IN DEVELOPMENT',
+    desc:'Browser-based fantasy typing combat game built on HTML5 Canvas and vanilla JS. Players defeat enemies by typing words correctly under time pressure. Phase 0 (core combat prototype) functional.',
+    stack:['HTML5 Canvas','JavaScript','CSS3'],
+    modules:['Combat Engine','Word Queue System','Enemy AI','Score Tracker','Phase 0 Prototype'],
+    github:'https://github.com/AnshSingh24',
+    demo:''
+  },
+  analytics:{
+    name:'Bestseller Analytics Dashboard',
+    file:'Analytics-Dashboard',
+    status:'SHIPPED',
+    desc:'Automated weekly pipeline fetching Amazon India bestseller data via Rainforest API, storing snapshots in Neon PostgreSQL, and visualizing trends through a Streamlit/Plotly dashboard. Scheduled via GitHub Actions.',
+    stack:['Python','PostgreSQL','Streamlit','Plotly','Pandas','GitHub Actions'],
+    modules:['Rainforest API Ingestion','Idempotent Upserts','Trend Visualization','GitHub Actions Scheduler','Demo/Live Mode Toggle'],
+    github:'https://github.com/AnshSingh24',
+    demo:''
+  },
+  tax:{
+    name:'TaxWise — AI Tax Advisor',
+    file:'TaxWise',
+    status:'SHIPPED',
+    desc:'AI-powered Indian startup tax advisor built with Next.js and MongoDB Atlas. Integrates Gemini API for natural language tax Q&A backed by a local Indian tax law knowledge base.',
+    stack:['Next.js','MongoDB Atlas','Gemini API','JavaScript'],
+    modules:['Tax Law Knowledge Base','Gemini AI Integration','Startup-focused Q&A','Indian Tax Compliance'],
+    github:'https://github.com/atharvsingh-07',
+    demo:''
+  }
+};
+
+function showProj(id, el){
+  document.querySelectorAll('.proj-entry').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  renderProject(id);
+}
+
+function renderProject(id){
+  const p = projects[id];
+  const main = document.getElementById('proj-main');
+  const treeHtml = p.tree ? `
+    <div class="label">File Tree</div>
+    <div class="file-tree">
+      <span class="dir">📁 ${p.file}/</span><br>
+      ${p.tree.map((f,i)=>`<span class="file-line">${i===p.tree.length-1?'└──':'├──'} ${f}</span>`).join('<br>')}
+    </div>
+  ` : '';
+  main.innerHTML = `
+    <div class="proj-detail active">
+      <h2>${p.name}</h2>
+      <div class="pstatus">● ${p.status}</div>
+      <div class="pdesc">${p.desc}</div>
+      <div class="label">Tech Stack</div>
+      <div class="stack-row">${p.stack.map(s=>`<span class="stk">${s}</span>`).join('')}</div>
+      <div class="label">Modules</div>
+      <ul class="module-list">${p.modules.map(m=>`<li>${m}</li>`).join('')}</ul>
+      ${treeHtml}
+      <div class="proj-actions">
+        ${p.github ? `<button class="pact-btn" onclick="window.open('${p.github}','_blank')">[VIEW SOURCE]</button>` : ''}
+        ${p.demo ? `<button class="pact-btn" onclick="window.open('${p.demo}','_blank')">[RUN DEMO]</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ══════════ TERMINAL ══════════
+const termCmds = {
+  help(){
+    return [
+      {t:'g', s:'Available commands:'},
+      {t:'m', s:'─────────────────────────'},
+      {t:'', s:'  about      — system info'},
+      {t:'', s:'  projects   — list projects'},
+      {t:'', s:'  skills     — tech stack'},
+      {t:'', s:'  contact    — get in touch'},
+      {t:'', s:'  resume     — view resume'},
+      {t:'', s:'  github     — open GitHub'},
+      {t:'', s:'  ls         — list filesystem'},
+      {t:'', s:'  cat <file> — read a file'},
+      {t:'', s:'  open <app> — open an app'},
+      {t:'', s:'  clear      — clear terminal'},
+      {t:'m', s:'─────────────────────────'},
+    ];
+  },
+  about(){
+    openApp('about');
+    return [{t:'g',s:'Opening About.exe...'},{t:'m',s:'USER: Ansh Singh'},{t:'m',s:'ROLE: Backend Developer | Compiler Engineer'},{t:'m',s:'STATUS: Open for opportunities'}];
+  },
+  projects(){
+    openApp('projects');
+    return [
+      {t:'g',s:'Indexing /home/ansh/projects...'},
+      {t:'m',s:'─────────────────────────────────'},
+      {t:'a',s:'[01] NEXA-Compiler       — C++ / LLVM'},
+      {t:'a',s:'[02] AI-Interview-Coach  — Java / Spring Boot'},
+      {t:'a',s:'[03] Typing-Legends      — HTML5 Canvas / JS'},
+      {t:'a',s:'[04] Analytics-Dashboard — Python / PostgreSQL'},
+      {t:'a',s:'[05] TaxWise             — Next.js / Gemini'},
+    ];
+  },
+  skills(){
+    openApp('skills');
+    return [{t:'g',s:'Opening Skills module...'},{t:'m',s:'Backend: Java, Spring Boot, Hibernate'},{t:'m',s:'Systems: C++, LLVM, CMake'},{t:'m',s:'Web: JavaScript, HTML, CSS'}];
+  },
+  contact(){
+    openApp('contact');
+    return [{t:'g',s:'Opening Contact.exe...'},{t:'m',s:'github.com/AnshSingh24'},{t:'m',s:'Location: Lucknow, India'}];
+  },
+  resume(){
+    openApp('resume');
+    return [{t:'g',s:'Loading resume.pdf...'}];
+  },
+  github(){
+    window.open('https://github.com/AnshSingh24','_blank');
+    return [{t:'g',s:'Opening GitHub in browser...'}];
+  },
+  ls(){
+    return [
+      {t:'g',s:'/home/ansh'},
+      {t:'m',s:'├── about.txt'},
+      {t:'m',s:'├── skills.json'},
+      {t:'m',s:'├── resume.pdf'},
+      {t:'m',s:'├── projects/'},
+      {t:'m',s:'│   ├── NEXA-Compiler/'},
+      {t:'m',s:'│   ├── AI-Interview-Coach/'},
+      {t:'m',s:'│   ├── Typing-Legends/'},
+      {t:'m',s:'│   ├── Analytics-Dashboard/'},
+      {t:'m',s:'│   └── TaxWise/'},
+      {t:'m',s:'└── secrets/'},
+    ];
+  },
+  'cat about.txt'(){
+    return [
+      {t:'g',s:'── about.txt ──────────────────────'},
+      {t:'',s:'Name  : Ansh Singh'},
+      {t:'',s:'Degree: B.E. CSE (2022–2026)'},
+      {t:'',s:'Focus : Backend Development, Compiler Engineering'},
+      {t:'',s:'Built : A programming language & compiler (NEXA),'},
+      {t:'',s:'        an AI interview platform, a typing game,'},
+      {t:'',s:'        and a data analytics pipeline.'},
+      {t:'',s:'Goal  : Backend / Systems engineering role.'},
+      {t:'g',s:'────────────────────────────────────'},
+    ];
+  },
+  'cat skills.json'(){
+    return [
+      {t:'g',s:'── skills.json ─────────────────────'},
+      {t:'b',s:'{ "backend": ["Java","Spring Boot","Hibernate","MySQL"],'},
+      {t:'b',s:'  "systems": ["C++","LLVM","CMake","Linux"],'},
+      {t:'b',s:'  "web":     ["JavaScript","HTML5","CSS3","WebRTC"],'},
+      {t:'b',s:'  "tools":   ["Git","Groq API","Ollama","Figma"] }'},
+      {t:'g',s:'────────────────────────────────────'},
+    ];
+  },
+  'cat secrets'(){
+    return [{t:'r',s:'Permission denied. 🔒'}];
+  },
+  'cat resume.pdf'(){
+    return [{t:'g',s:'Opening Resume.exe instead...'},{t:'m',s:'(PDFs render better in the app)'}];
+  },
+  clear(){ return '__clear__'; },
+};
+
+function handleTermKey(e){
+  if(e.key !== 'Enter') return;
+  const input = document.getElementById('term-input');
+  const raw = input.value.trim();
+  input.value = '';
+  if(!raw) return;
+  const out = document.getElementById('term-output');
+  // echo command
+  const echo = document.createElement('div');
+  echo.className='term-line';
+  echo.innerHTML = `<span style="color:var(--green)">ansh@anshos:~$</span> ${raw}`;
+  out.appendChild(echo);
+  // resolve
+  const cmd = termCmds[raw.toLowerCase()] || (raw.startsWith('open ')
+    ? ()=>{const n=raw.slice(5).trim();openApp(n);return [{t:'g',s:`Opening ${n}.exe...`}];}
+    : null);
+  if(cmd){
+    const result = cmd();
+    if(result === '__clear__'){ out.innerHTML=''; return; }
+    result.forEach(l=>{
+      const d=document.createElement('div');
+      d.className='term-line'+(l.t?' '+l.t:'');
+      d.textContent=l.s;
+      out.appendChild(d);
+    });
+  } else {
+    const d=document.createElement('div');
+    d.className='term-line r';
+    d.textContent=`Command not found: ${raw}. Type 'help' for commands.`;
+    out.appendChild(d);
+  }
+  const body = document.getElementById('term-body');
+  body.scrollTop = body.scrollHeight;
+}
+
+function focusTermInput(){ document.getElementById('term-input')?.focus(); }
+
+// ══════════ BOOT ══════════
+runBoot();
 </script>
 </body>
 </html>
