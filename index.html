@@ -466,7 +466,7 @@ const bootLines = [
   {text:'Initializing kernel...', delay:400},
   {text:'<span class="ok">✓</span> Kernel loaded', delay:300},
   {text:'<span class="ok">✓</span> Developer profile found: Ansh Singh', delay:400},
-  {text:'<span class="ok">✓</span> 5 projects indexed', delay:350},
+  {text:'<span class="ok">✓</span> 4 projects indexed', delay:350},
   {text:'<span class="ok">✓</span> Skills module loaded', delay:300},
   {text:'<span class="ok">✓</span> Terminal ready', delay:350},
   {text:'<span class="ok">✓</span> Network interfaces up', delay:300},
@@ -640,7 +640,8 @@ const projects = {
     modules:['Rainforest API Ingestion','Idempotent Upserts','Trend Visualization','GitHub Actions Scheduler','Demo/Live Mode Toggle'],
     github:'https://github.com/AnshSingh24/weekly-bestseller-analytics',
     demo:''
-  };
+  }
+};
 
 function showProj(id, el){
   document.querySelectorAll('.proj-entry').forEach(e=>e.classList.remove('active'));
@@ -708,7 +709,6 @@ const termCmds = {
       {t:'a',s:'[02] AI-Interview-Coach  — Java / Spring Boot'},
       {t:'a',s:'[03] Typing-Legends      — HTML5 Canvas / JS'},
       {t:'a',s:'[04] Analytics-Dashboard — Python / PostgreSQL'},
-      {t:'a',s:'[05] TaxWise             — Next.js / Gemini'},
     ];
   },
   skills(){
