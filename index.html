@@ -302,9 +302,6 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
             <div class="proj-entry" onclick="showProj('analytics',this)" data-id="analytics">
               <span class="picon">📁</span> Bestseller-Analytics
             </div>
-            <div class="proj-entry" onclick="showProj('tax',this)" data-id="tax">
-              <span class="picon">📁</span> TaxWise
-            </div>
           </div>
           <div class="explorer-main" id="proj-main"></div>
         </div>
@@ -643,18 +640,7 @@ const projects = {
     modules:['Rainforest API Ingestion','Idempotent Upserts','Trend Visualization','GitHub Actions Scheduler','Demo/Live Mode Toggle'],
     github:'https://github.com/AnshSingh24/weekly-bestseller-analytics',
     demo:''
-  },
-  tax:{
-    name:'TaxWise — AI Tax Advisor',
-    file:'TaxWise',
-    status:'SHIPPED',
-    desc:'AI-powered Indian startup tax advisor built with Next.js and MongoDB Atlas. Integrates Gemini API for natural language tax Q&A backed by a local Indian tax law knowledge base.',
-    stack:['Next.js','MongoDB Atlas','Gemini API','JavaScript'],
-    modules:['Tax Law Knowledge Base','Gemini AI Integration','Startup-focused Q&A','Indian Tax Compliance'],
-    github:'https://github.com/AnshSingh24/Task-Management-System',
-    demo:''
-  }
-};
+  };
 
 function showProj(id, el){
   document.querySelectorAll('.proj-entry').forEach(e=>e.classList.remove('active'));
